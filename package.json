@@ -10,9 +10,11 @@
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
-    "tauri:build:mac": "tauri build --target universal-apple-darwin",
+    "tauri:build:mac": "tauri build --target aarch64-apple-darwin && tauri build --target x86_64-apple-darwin",
+    "tauri:build:mac:arm": "tauri build --target aarch64-apple-darwin",
+    "tauri:build:mac:intel": "tauri build --target x86_64-apple-darwin",
     "tauri:build:windows": "tauri build --target x86_64-pc-windows-msvc",
-    "tauri:build:all": "tauri build --target universal-apple-darwin --target x86_64-pc-windows-msvc"
+    "tauri:build:all": "pnpm run tauri:build:mac && pnpm run tauri:build:windows"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.7.0",
