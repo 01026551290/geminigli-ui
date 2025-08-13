@@ -36,6 +36,32 @@ export default function SetupScreen({
     return "npm install -g @google/gemini-cli 또는 brew install gemini-cli";
   };
 
+  const getManualInstallSteps = () => {
+    if (os === "win") {
+      return [
+        "1. PowerShell을 관리자 권한으로 실행",
+        "2. Node.js가 설치되어 있는지 확인: node --version",
+        "3. Node.js가 없다면 https://nodejs.org에서 다운로드",
+        "4. 명령어 실행: npm install -g @google/gemini-cli",
+        "5. 설치 확인: gemini --version"
+      ];
+    } else if (os === "mac") {
+      return [
+        "1. 터미널 열기",
+        "2. Homebrew로 설치: brew install gemini-cli",
+        "3. 또는 npm으로 설치: npm install -g @google/gemini-cli",
+        "4. 설치 확인: gemini --version"
+      ];
+    } else {
+      return [
+        "1. 터미널 열기",
+        "2. Node.js 설치 확인: node --version",
+        "3. npm으로 설치: npm install -g @google/gemini-cli",
+        "4. 설치 확인: gemini --version"
+      ];
+    }
+  };
+
   const getStatusColor = () => {
     if (state === "ready") return "bg-green-500";
     if (state === "error") return "bg-red-500";
@@ -102,12 +128,33 @@ export default function SetupScreen({
 
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                실행할 명령어:
+                자동 설치 명령어:
               </p>
               <code className="text-sm font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
                 {getInstallCommand()}
               </code>
             </div>
+
+            {os === "win" && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+                  💡 Windows에서 수동 설치하기:
+                </p>
+                <div className="text-sm text-blue-600 dark:text-blue-400 space-y-1">
+                  {getManualInstallSteps().map((step) => (
+                    <div key={step} className="flex items-start">
+                      <span className="inline-block w-4 text-center">•</span>
+                      <span className="ml-2">{step}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700">
+                  <p className="text-xs text-blue-600 dark:text-blue-400">
+                    ⚠️ 자동 설치가 실패하면 위 단계를 따라 수동으로 설치해주세요.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {detail && (
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
