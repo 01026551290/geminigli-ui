@@ -1,0 +1,58 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "gemini-desktop",
+  "version": "0.1.0",
+  "identifier": "dev.geminidesktop.desktop",
+  "build": {
+    "frontendDist": "../out",
+    "devUrl": "http://localhost:3000",
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Gemini Desktop",
+        "width": 1000,
+        "height": 700,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "focus": true,
+        "alwaysOnTop": false,
+        "visible": true
+      }
+    ],
+    "security": {
+      "capabilities": ["default"],
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "publisher": "Gemini Desktop",
+    "copyright": "Copyright © 2025 Gemini Desktop. All rights reserved.",
+    "category": "Productivity",
+    "shortDescription": "Desktop GUI for Gemini CLI",
+    "longDescription": "A modern desktop application that provides a visual interface for the Gemini CLI with advanced features like conversation history, file attachments, and usage tracking.",
+    "macOS": {
+      "frameworks": [],
+      "minimumSystemVersion": "10.13",
+      "exceptionDomain": "localhost"
+    },
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": ""
+    }
+  }
+}

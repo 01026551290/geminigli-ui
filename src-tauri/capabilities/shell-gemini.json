@@ -1,0 +1,28 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "shell-gemini",
+  "description": "Allow running Gemini CLI for quick test",
+  "permissions": [
+    "core:default",
+    "shell:allow-execute",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "gemini-version",
+          "cmd": "gemini",
+          "args": [{ "validator": "^--version$" }]
+        },
+        {
+          "name": "gemini-prompt",
+          "cmd": "gemini",
+          "args": [
+            { "validator": "^(-p|--prompt)$" },
+            { "validator": "[\\s\\S]*" }
+          ]
+        }
+      ]
+    }
+  ],
+  "windows": ["main"]
+}
