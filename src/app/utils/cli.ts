@@ -50,6 +50,24 @@ export async function hasGeminiCli() {
   try {
     const { Command } = require("@tauri-apps/plugin-shell");
 
+    // 먼저 저장된 커스텀 경로가 있는지 확인
+    const savedCustomPath = getSavedCustomCliPath();
+    if (savedCustomPath) {
+      console.log("Found saved custom CLI path:", savedCustomPath);
+      const customPathWorks = await testCustomCliPath(savedCustomPath);
+      if (customPathWorks) {
+        console.log("✅ Saved custom CLI path is working");
+        return true;
+      } else {
+        console.log("❌ Saved custom CLI path no longer works, removing it");
+        try {
+          localStorage.removeItem("gemini-cli-custom-path");
+        } catch (e) {
+          console.log("Could not remove invalid custom path:", e);
+        }
+      }
+    }
+
     // Windows 환경에서 CLI 확인
     const os = detectOS();
     if (os === "windows") {
@@ -752,5 +770,99 @@ export async function installGeminiCli(os: "mac" | "win" | "linux") {
   } catch (error) {
     console.log("CLI installation error:", error);
     return false;
+  }
+}
+
+// 사용자 지정 경로로 CLI 테스트
+export async function testCustomCliPath(customPath: string) {
+  console.log("=== Testing custom CLI path ===", customPath);
+  
+  if (isWeb) {
+    console.log("Web environment - custom CLI path testing not supported");
+    return false;
+  }
+
+  try {
+    const { Command } = require("@tauri-apps/plugin-shell");
+    
+    // 먼저 파일 존재 여부 확인
+    let fileExists = false;
+    try {
+      const { exists } = require('@tauri-apps/plugin-fs');
+      fileExists = await exists(customPath);
+      console.log(`📁 Custom file exists check: ${customPath} = ${fileExists}`);
+    } catch (fsError) {
+      console.log("Tauri fs check failed, trying test command:", fsError);
+      
+      // fallback: test 명령어로 파일 존재 여부 확인  
+      try {
+        const testResult = await Command.create("/usr/bin/test", ["-f", customPath]).execute();
+        fileExists = testResult.code === 0;
+        console.log(`📁 Test command check: ${customPath} = ${fileExists}`);
+      } catch (testError) {
+        console.log("Test command also failed:", testError);
+      }
+    }
+    
+    if (!fileExists) {
+      console.log(`❌ Custom CLI path does not exist: ${customPath}`);
+      return false;
+    }
+    
+    // 파일이 존재하면 실행 시도
+    console.log(`🚀 Attempting to execute: ${customPath}`);
+    
+    let result;
+    if (customPath.endsWith(".js")) {
+      // Node.js 스크립트
+      result = await Command.create("node", [customPath, "--version"]).execute();
+    } else {
+      // 바이너리 파일 - 여러 방법으로 시도
+      try {
+        result = await Command.create(customPath, ["--version"]).execute();
+        console.log("✅ Direct execution successful");
+      } catch (directError) {
+        console.log("Direct execution failed, trying shell:", directError);
+        
+        // shell을 통해 실행
+        const os = detectOS();
+        if (os === "windows") {
+          result = await Command.create("cmd", ["/C", `"${customPath}" --version`]).execute();
+        } else {
+          result = await Command.create("/bin/bash", ["-c", `"${customPath}" --version`]).execute();
+        }
+      }
+    }
+    
+    if (result && result.code === 0) {
+      console.log(`✅ Custom CLI path working: ${customPath}`);
+      console.log("Version output:", result.stdout?.trim());
+      
+      // 성공한 경로를 저장 (향후 사용을 위해)
+      try {
+        localStorage.setItem("gemini-cli-custom-path", customPath);
+      } catch (storageError) {
+        console.log("Could not save custom path to localStorage:", storageError);
+      }
+      
+      return true;
+    } else {
+      console.log(`❌ Custom CLI path execution failed: ${customPath}`);
+      console.log("Exit code:", result?.code);
+      console.log("Error output:", result?.stderr);
+      return false;
+    }
+  } catch (error) {
+    console.log("Custom CLI path test error:", error);
+    return false;
+  }
+}
+
+// 저장된 사용자 지정 경로 불러오기
+export function getSavedCustomCliPath(): string | null {
+  try {
+    return localStorage.getItem("gemini-cli-custom-path");
+  } catch {
+    return null;
   }
 }

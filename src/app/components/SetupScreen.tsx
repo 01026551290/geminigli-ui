@@ -22,6 +22,8 @@ export default function SetupScreen({
   onRetest,
 }: Readonly<SetupScreenProps>) {
   const [apiKey, setApiKey] = useState("");
+  const [customCliPath, setCustomCliPath] = useState("");
+  const [showCustomPath, setShowCustomPath] = useState(false);
 
   const getOSLabel = () => {
     if (os === "mac") return "macOS";
@@ -200,6 +202,60 @@ export default function SetupScreen({
                 </p>
               </div>
             )}
+
+            {/* 수동 CLI 경로 지정 옵션 */}
+            <div className="border-t pt-4">
+              <button
+                type="button"
+                onClick={() => setShowCustomPath(!showCustomPath)}
+                className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                {showCustomPath ? "▼" : "▶"} CLI가 이미 설치되어 있다면 경로를 직접 지정하기
+              </button>
+              
+              {showCustomPath && (
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <label htmlFor="custom-cli-path" className="block text-sm text-gray-700 dark:text-gray-300 mb-1">
+                      Gemini CLI 경로:
+                    </label>
+                    <input
+                      id="custom-cli-path"
+                      type="text"
+                      value={customCliPath}
+                      onChange={(e) => setCustomCliPath(e.target.value)}
+                      placeholder={os === "mac" ? "/opt/homebrew/bin/gemini" : "C:\\Users\\[사용자명]\\AppData\\Roaming\\npm\\gemini.cmd"}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      터미널에서 &quot;which gemini&quot; 또는 &quot;where gemini&quot; 명령으로 경로를 찾을 수 있습니다.
+                    </p>
+                  </div>
+                  
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (customCliPath.trim()) {
+                        // 사용자 지정 경로로 CLI 테스트
+                        console.log("Testing custom CLI path:", customCliPath.trim());
+                        const { testCustomCliPath } = await import("../utils/cli");
+                        const success = await testCustomCliPath(customCliPath.trim());
+                        if (success) {
+                          // 성공하면 메인 앱으로 이동
+                          await onRetest();
+                        } else {
+                          alert("지정한 경로에서 Gemini CLI를 찾을 수 없습니다. 경로를 다시 확인해주세요.");
+                        }
+                      }
+                    }}
+                    disabled={!customCliPath.trim() || busy}
+                    className="w-full px-4 py-2 text-sm bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-lg transition-colors"
+                  >
+                    이 경로로 테스트
+                  </button>
+                </div>
+              )}
+            </div>
 
             <button
               onClick={handleInstall}
