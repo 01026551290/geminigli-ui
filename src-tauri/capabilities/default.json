@@ -37,7 +37,7 @@
           "args": true
         },
         {
-          "name": "zsh", 
+          "name": "zsh",
           "cmd": "/bin/zsh",
           "args": true
         },
@@ -48,7 +48,7 @@
         },
         {
           "name": "npm",
-          "cmd": "npm", 
+          "cmd": "npm",
           "args": true
         },
         {
@@ -59,6 +59,31 @@
         {
           "name": "which",
           "cmd": "/usr/bin/which",
+          "args": true
+        },
+        {
+          "name": "find",
+          "cmd": "/usr/bin/find",
+          "args": true
+        },
+        {
+          "name": "ls",
+          "cmd": "/bin/ls",
+          "args": true
+        },
+        {
+          "name": "test",
+          "cmd": "/usr/bin/test",
+          "args": true
+        },
+        {
+          "name": "homebrew-gemini",
+          "cmd": "/opt/homebrew/bin/gemini",
+          "args": true
+        },
+        {
+          "name": "local-gemini", 
+          "cmd": "/usr/local/bin/gemini",
           "args": true
         },
         {

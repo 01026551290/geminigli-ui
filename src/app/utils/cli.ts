@@ -63,7 +63,10 @@ export async function hasGeminiCli() {
           "$env:PATH",
         ]).execute();
         if (envResult.code === 0 && envResult.stdout) {
-          console.log("PowerShell PATH:", envResult.stdout.trim().substring(0, 200) + "...");
+          console.log(
+            "PowerShell PATH:",
+            envResult.stdout.trim().substring(0, 200) + "..."
+          );
         }
       } catch (error) {
         console.log("Failed to read PowerShell environment:", error);
@@ -252,17 +255,22 @@ export async function hasGeminiCli() {
     // macOS/Linux 환경에서 CLI 확인 (기존 로직 개선)
     console.log(`${os} detected - comprehensive CLI detection`);
 
-    // 0) 환경변수 PATH를 shell을 통해 읽기
+    // 0) 환경변수 및 기본 정보 확인
     try {
       console.log("Reading shell environment...");
       const envResult = await Command.create("/bin/bash", [
         "-l",
         "-c",
-        "echo $PATH",
+        "echo HOME=$HOME; echo PATH=$PATH | cut -c1-200",
       ]).execute();
       if (envResult.code === 0 && envResult.stdout) {
-        console.log("Shell PATH:", envResult.stdout.trim());
+        console.log("Shell Environment:", envResult.stdout.trim());
       }
+      
+      // Node.js 환경변수도 확인
+      console.log("Node.js HOME env:", process.env.HOME);
+      console.log("Node.js PATH preview:", process.env.PATH?.substring(0, 200));
+      
     } catch (error) {
       console.log("Failed to read shell environment:", error);
     }
@@ -338,36 +346,107 @@ export async function hasGeminiCli() {
       console.log("which command failed:", error);
     }
 
-    // 5) 일반적인 macOS 경로들 확인
+    // 5) 일반적인 macOS 경로들 직접 확인 - 파일 시스템 수준에서 확인
+    
+    // 먼저 HOME 디렉터리를 정확히 확인
+    let homeDir = process.env.HOME;
+    if (!homeDir) {
+      try {
+        const homeResult = await Command.create("/bin/bash", [
+          "-c",
+          "echo $HOME",
+        ]).execute();
+        if (homeResult.code === 0 && homeResult.stdout?.trim()) {
+          homeDir = homeResult.stdout.trim();
+          console.log("HOME directory from shell:", homeDir);
+        }
+      } catch (error) {
+        console.log("Failed to get HOME from shell:", error);
+      }
+    } else {
+      console.log("HOME directory from process.env:", homeDir);
+    }
+    
     const macPaths = [
       "/opt/homebrew/bin/gemini",
       "/usr/local/bin/gemini",
       "/opt/homebrew/lib/node_modules/@google/gemini-cli/bin/gemini.js",
       "/usr/local/lib/node_modules/@google/gemini-cli/bin/gemini.js",
-      `${process.env.HOME}/.npm-global/bin/gemini`,
-      `${process.env.HOME}/.npm-global/lib/node_modules/@google/gemini-cli/bin/gemini.js`,
     ];
+    
+    // HOME 디렉터리가 있으면 추가 경로들 포함
+    if (homeDir) {
+      macPaths.push(
+        `${homeDir}/.npm-global/bin/gemini`,
+        `${homeDir}/.npm-global/lib/node_modules/@google/gemini-cli/bin/gemini.js`,
+        `${homeDir}/.local/bin/gemini`,
+        `${homeDir}/node_modules/.bin/gemini`
+      );
+    }
+    
+    console.log("Checking paths:", macPaths);
 
     for (const path of macPaths) {
       try {
         console.log(`Checking path: ${path}`);
-        let result;
-        if (path.endsWith(".js")) {
-          result = await Command.create("node", [path, "--version"]).execute();
-        } else {
-          // shell을 통해 실행해서 권한 문제 해결
-          result = await Command.create("/bin/bash", [
-            "-c",
-            `${path} --version`,
+        
+        // Tauri fs 플러그인을 사용해서 파일 존재 여부 확인
+        let fileExists = false;
+        try {
+          const { exists } = require('@tauri-apps/plugin-fs');
+          fileExists = await exists(path);
+          console.log(`📁 File exists check via Tauri fs: ${path} = ${fileExists}`);
+        } catch (fsError) {
+          console.log("Tauri fs check failed, falling back to test command:", fsError);
+          
+          // fallback: test 명령어로 파일 존재 여부 확인
+          const testResult = await Command.create("/usr/bin/test", [
+            "-f",
+            path,
           ]).execute();
+          fileExists = testResult.code === 0;
+          console.log(`📁 File exists check via test command: ${path} = ${fileExists}`);
         }
+        
+        if (fileExists) {
+          console.log(`📁 File confirmed to exist at: ${path}`);
+          
+          // 파일이 존재하면 실행 시도
+          let result;
+          if (path.endsWith(".js")) {
+            console.log(`Executing Node.js script: ${path}`);
+            result = await Command.create("node", [path, "--version"]).execute();
+          } else {
+            console.log(`Executing binary: ${path}`);
+            // 직접 실행 권한 확인을 위해 두 가지 방법 시도
+            try {
+              result = await Command.create(path, ["--version"]).execute();
+              console.log(`✅ Direct execution successful for ${path}`);
+            } catch (directError) {
+              console.log(`Direct execution failed for ${path}, trying via shell:`, directError);
+              // shell을 통해 실행
+              result = await Command.create("/bin/bash", [
+                "-c",
+                `"${path}" --version`,
+              ]).execute();
+              console.log(`Tried shell execution for ${path}`);
+            }
+          }
 
-        if (result.code === 0) {
-          console.log(`✅ gemini CLI found at: ${path}`);
-          return true;
+          if (result && result.code === 0) {
+            console.log(`✅ gemini CLI found and working at: ${path}`);
+            console.log("Version output:", result.stdout?.trim());
+            return true;
+          } else {
+            console.log(`❌ File exists but execution failed at: ${path}`);
+            console.log("Result code:", result?.code);
+            console.log("Error output:", result?.stderr);
+          }
+        } else {
+          console.log(`❌ File does not exist: ${path}`);
         }
       } catch (error) {
-        console.log(`Path ${path} failed:`, error);
+        console.log(`Path check failed for ${path}:`, error);
       }
     }
 
@@ -379,10 +458,7 @@ export async function hasGeminiCli() {
         "-c",
         "npm list -g @google/gemini-cli --depth=0",
       ]).execute();
-      if (
-        result.stdout &&
-        result.stdout.includes("@google/gemini-cli")
-      ) {
+      if (result.stdout && result.stdout.includes("@google/gemini-cli")) {
         console.log("✅ gemini CLI found in npm global packages");
         return true;
       }
