@@ -37,8 +37,53 @@
           "args": true
         },
         {
+          "name": "zsh", 
+          "cmd": "/bin/zsh",
+          "args": true
+        },
+        {
           "name": "gemini",
-          "cmd": "/opt/homebrew/bin/gemini",
+          "cmd": "gemini",
+          "args": true
+        },
+        {
+          "name": "npm",
+          "cmd": "npm", 
+          "args": true
+        },
+        {
+          "name": "npx",
+          "cmd": "npx",
+          "args": true
+        },
+        {
+          "name": "which",
+          "cmd": "/usr/bin/which",
+          "args": true
+        },
+        {
+          "name": "where",
+          "cmd": "where",
+          "args": true
+        },
+        {
+          "name": "cmd",
+          "cmd": "cmd",
+          "args": true
+        },
+        {
+          "name": "powershell",
+          "cmd": "powershell",
+          "args": true
+        },
+        {
+          "name": "pwsh",
+          "cmd": "pwsh",
+          "args": true
+        },
+        {
+          "name": "node",
+          "cmd": "node",
           "args": true
         }
       ]

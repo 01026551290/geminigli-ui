@@ -44,21 +44,21 @@ export default function SetupScreen({
         "3. Node.js가 없다면 https://nodejs.org에서 LTS 버전 다운로드",
         "4. PowerShell에서 실행: npm install -g @google/gemini-cli",
         "5. 설치 확인: gemini --version",
-        "6. PATH 새로고침: 새 PowerShell 창을 열고 다시 확인"
+        "6. PATH 새로고침: 새 PowerShell 창을 열고 다시 확인",
       ];
     } else if (os === "mac") {
       return [
         "1. 터미널 열기",
         "2. Homebrew로 설치: brew install gemini-cli",
         "3. 또는 npm으로 설치: npm install -g @google/gemini-cli",
-        "4. 설치 확인: gemini --version"
+        "4. 설치 확인: gemini --version",
       ];
     } else {
       return [
         "1. 터미널 열기",
         "2. Node.js 설치 확인: node --version",
         "3. npm으로 설치: npm install -g @google/gemini-cli",
-        "4. 설치 확인: gemini --version"
+        "4. 설치 확인: gemini --version",
       ];
     }
   };
@@ -70,14 +70,14 @@ export default function SetupScreen({
         "• 새 PowerShell 창에서 다시 시도 (PATH 갱신)",
         "• npm 캐시 정리: npm cache clean --force",
         "• Node.js 재설치 (LTS 버전)",
-        "• 관리자 권한으로 설치 실행"
+        "• 관리자 권한으로 설치 실행",
       ];
     } else {
       return [
         "• sudo npm install -g @google/gemini-cli",
         "• brew doctor && brew update (macOS)",
         "• npm 권한 문제: npm config fix",
-        "• 터미널 재시작 후 다시 시도"
+        "• 터미널 재시작 후 다시 시도",
       ];
     }
   };
@@ -168,7 +168,7 @@ export default function SetupScreen({
                     </div>
                   ))}
                 </div>
-                
+
                 {/* 문제 해결 단계 추가 */}
                 <div className="mt-4 pt-3 border-t border-blue-200 dark:border-blue-700">
                   <p className="text-sm text-blue-700 dark:text-blue-300 mb-2 font-semibold">
@@ -183,10 +183,11 @@ export default function SetupScreen({
                     ))}
                   </div>
                 </div>
-                
+
                 <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700">
                   <p className="text-xs text-blue-600 dark:text-blue-400">
-                    ⚠️ 설치 후 새 PowerShell 창을 열어 gemini --version으로 확인하세요.
+                    ⚠️ 설치 후 새 PowerShell 창을 열어 gemini --version으로
+                    확인하세요.
                   </p>
                 </div>
               </div>
