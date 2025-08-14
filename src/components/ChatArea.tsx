@@ -5,10 +5,7 @@ import { Send, Bot, User, Paperclip } from "lucide-react";
 import { Command } from "@tauri-apps/plugin-shell";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import {
-  oneDark,
-  oneLight,
-} from "react-syntax-highlighter/dist/esm/styles/prism";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Message } from "../types";
 import { GeminiSettings } from "./AdvancedSettings";
 import { ConversationMode } from "./ConversationManager";
